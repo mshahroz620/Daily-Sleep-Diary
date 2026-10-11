@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101827"><meta name="description" content="Private personal sleep diary">
+<link rel="manifest" href="manifest.json">
+<title>My Sleep Diary</title>
+<style>
+:root{--bg:#0b1220;--card:#121c2d;--line:#29364b;--text:#edf3fb;--muted:#9fb0c7;--blue:#7db5ff;--amber:#ffc875}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,-apple-system,Segoe UI,sans-serif}
+header{padding:22px 18px 14px;background:#101827;position:sticky;top:0;z-index:2;border-bottom:1px solid var(--line)}
+h1{font-size:24px;margin:0 0 4px}header p{margin:0;color:var(--muted);font-size:13px}
+nav{display:flex;gap:8px;margin-top:14px}nav button{flex:1}
+main{max-width:720px;margin:auto;padding:16px 14px 40px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+h2{font-size:18px;margin:0 0 14px}.hint{color:var(--muted);font-size:13px;margin-top:-6px;margin-bottom:12px}
+label{display:block;font-size:14px;font-weight:650;margin:13px 0 6px}
+input,textarea,select{width:100%;padding:12px;border:1px solid #40506a;border-radius:11px;background:#0b1423;color:var(--text);font:inherit}
+textarea{min-height:76px;resize:vertical}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button{border:1px solid #40506a;border-radius:12px;padding:12px;background:#1b2940;color:var(--text);font:600 14px system-ui;cursor:pointer}
+button.primary{background:#2863a9;border-color:#397bc9}button.danger{background:#47222a;border-color:#77404a}
+.rating{display:flex;gap:6px;margin:8px 0 5px}.rating button{flex:1;padding:9px 0;background:#0b1423}.rating button.active{background:#2863a9;border-color:#80b9ff}
+.scaleEnds{display:flex;justify-content:space-between;color:var(--muted);font-size:12px}
+.entry{border-top:1px solid var(--line);padding:12px 0}.entry strong{display:block}.entry small{color:var(--muted)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.actions button{flex:1}
+.hidden{display:none!important}.note{font-size:12px;color:var(--muted);line-height:1.5}
+@media(max-width:420px){.grid{grid-template-columns:1fr 1fr}.card{padding:13px}}
+</style>
+</head>
+<body>
+<header><h1>🌙 My Sleep Diary</h1><p>Daily log · 14-day study · Your entries stay on this device</p>
+<nav><button id="tabDiary" class="primary" onclick="showTab('diary')">Daily diary</button><button id="tabHistory" onclick="showTab('history')">History & export</button></nav></header>
+<main>
+<section id="diary">
+<form id="sleepForm">
+<div class="card"><h2>Record date</h2><label for="date">Diary date</label><input id="date" type="date" required></div>
+<div class="card"><h2>Before bed</h2>
+<label>Number of caffeinated drinks</label><input id="caffeine" type="number" min="0" step="1" value="0">
+<label>Times of caffeine</label><input id="caffeineTime" placeholder="None, or e.g. tea at 6 PM">
+<label>Naps and durations</label><input id="naps" placeholder="None, or times and durations">
+<label>Exercise times and durations</label><input id="exercise" placeholder="None, or times and durations">
+<label>Daytime sleepiness / alertness</label><div class="hint">1 = struggled to stay awake · 10 = fully alert</div><div class="rating" data-rating="dayAlert"></div><input id="dayAlert" type="hidden" value="7">
+</div>
+<div class="card"><h2>In the morning</h2>
+<div class="grid"><div><label>Time went to bed</label><input id="bed" placeholder="e.g. 03:00 AM" required></div><div><label>Time got out of bed</label><input id="outBed" placeholder="e.g. 11:00 AM" required></div></div>
+<label>Hours spent in bed</label><input id="hoursBed" type="number" min="0" max="24" step="0.1" placeholder="e.g. 8" required>
+<div class="grid"><div><label>Number of awakenings</label><input id="awakenings" type="number" min="0" value="0"></div><div><label>Total time awake (minutes)</label><input id="awakeTime" type="number" min="0" value="0"></div></div>
+<label>Time taken to fall asleep (minutes)</label><input id="latency" type="number" min="0" value="15">
+<label>Medicines taken last night</label><input id="medicines" placeholder="None">
+<label>Morning alertness</label><div class="hint">1 = sleepy · 10 = very alert</div><div class="rating" data-rating="morningAlert"></div><input id="morningAlert" type="hidden" value="6">
+<label>How refreshed did you feel after waking?</label><div class="hint">1 = exhausted · 10 = refreshed</div><div class="rating" data-rating="refreshed"></div><input id="refreshed" type="hidden" value="6">
+<label>Daytime energy</label><div class="hint">1 = very low · 10 = excellent</div><div class="rating" data-rating="energy"></div><input id="energy" type="hidden" value="5">
+<label>Daytime sleepiness</label><div class="hint">1 = not sleepy · 10 = fighting sleep</div><div class="rating" data-rating="sleepiness"></div><input id="sleepiness" type="hidden" value="4">
+<label>Other observations</label><textarea id="notes" placeholder="Stress, interrupted or split sleep, unusual work hours, waking naturally/by alarm..."></textarea>
+</div>
+<div class="actions"><button class="primary" type="submit">Save daily record</button><button type="button" onclick="clearForm()">Clear form</button></div>
+<p class="note">No alcohol question, as requested. This diary is for personal tracking and does not diagnose a sleep condition.</p>
+</form>
+</section>
+<section id="history" class="hidden">
+<div class="card"><h2>Saved entries</h2><p id="summary" class="hint">Your saved records will appear here.</p><div class="actions"><button class="primary" onclick="exportCSV()">Export CSV</button><button onclick="exportJSON()">Backup JSON</button><button onclick="document.getElementById('importFile').click()">Import backup</button><input id="importFile" class="hidden" type="file" accept="application/json" onchange="importJSON(event)"></div><p class="note">Export a backup regularly. Browser data can be lost if you clear app/browser storage or uninstall the app.</p></div>
+<div class="card"><h2>Entries</h2><div id="entries"></div></div>
+<div class="card"><h2>14-day overview</h2><div id="report"></div></div>
+</section>
+</main>
+<script>
+const ids=['date','caffeine','caffeineTime','naps','exercise','dayAlert','bed','outBed','hoursBed','awakenings','awakeTime','latency','medicines','morningAlert','refreshed','energy','sleepiness','notes'];
+let records=JSON.parse(localStorage.getItem('sleepDiaryRecords')||'[]');
+document.querySelectorAll('.rating').forEach(w=>{let id=w.dataset.rating;for(let n=1;n<=10;n++){let b=document.createElement('button');b.type='button';b.textContent=n;b.dataset.n=n;b.onclick=()=>setRating(id,n);w.appendChild(b)}setRating(id,document.getElementById(id).value)});
+function setRating(id,n){document.getElementById(id).value=n;let w=document.querySelector('[data-rating="'+id+'"]');w.querySelectorAll('button').forEach(b=>b.classList.toggle('active',Number(b.dataset.n)===Number(n)))}
+function today(){let d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+document.getElementById('date').value=today();
+function showTab(tab){document.getElementById('diary').classList.toggle('hidden',tab!=='diary');document.getElementById('history').classList.toggle('hidden',tab!=='history');document.getElementById('tabDiary').classList.toggle('primary',tab==='diary');document.getElementById('tabHistory').classList.toggle('primary',tab==='history');if(tab==='history')renderHistory();window.scrollTo(0,0)}
+function formData(){let o={};ids.forEach(id=>o[id]=document.getElementById(id).value);o.savedAt=new Date().toISOString();return o}
+document.getElementById('sleepForm').addEventListener('submit',e=>{e.preventDefault();let x=formData();let i=records.findIndex(r=>r.date===x.date);if(i>=0)records[i]=x;else records.push(x);records.sort((a,b)=>a.date.localeCompare(b.date));persist();alert('Sleep record saved on this device.');showTab('history')});
+function persist(){localStorage.setItem('sleepDiaryRecords',JSON.stringify(records))}
+function clearForm(){if(confirm('Clear the current form? Unsaved changes will be lost.')){document.getElementById('sleepForm').reset();document.getElementById('date').value=today();['dayAlert','morningAlert','refreshed','energy','sleepiness'].forEach((id,i)=>setRating(id,[7,6,6,5,4][i]))}}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function renderHistory(){let host=document.getElementById('entries');host.innerHTML='';[...records].reverse().forEach(r=>{let d=document.createElement('div');d.className='entry';d.innerHTML='<strong>'+esc(r.date)+' · '+esc(r.hoursBed)+' h in bed</strong><small>Energy '+esc(r.energy)+'/10 · Refreshed '+esc(r.refreshed)+'/10 · Sleepiness '+esc(r.sleepiness)+'/10</small><div class="actions" style="margin-top:8px"><button onclick="loadEntry(\''+r.date+'\')">Edit</button><button class="danger" onclick="deleteEntry(\''+r.date+'\')">Delete</button></div>';host.appendChild(d)});document.getElementById('summary').textContent=records.length+' saved day(s). '+(records.length>=14?'14-day report ready.':'Keep logging until you have 14 days.');let last=records.slice(-14);if(last.length){let avg=k=>last.reduce((s,r)=>s+(Number(r[k])||0),0)/last.length;document.getElementById('report').innerHTML='<p><b>Days recorded:</b> '+last.length+'</p><p><b>Average hours in bed:</b> '+avg('hoursBed').toFixed(2)+'</p><p><b>Average daytime energy:</b> '+avg('energy').toFixed(1)+'/10</p><p><b>Average refreshed:</b> '+avg('refreshed').toFixed(1)+'/10</p><p><b>Average daytime sleepiness:</b> '+avg('sleepiness').toFixed(1)+'/10</p><p class="note">These are self-reported summaries, not medical conclusions. Hours in bed are not the same as actual sleep time.</p>'}else document.getElementById('report').textContent='Your report will appear after you save entries.'}
+function loadEntry(date){let r=records.find(x=>x.date===date);if(!r)return;ids.forEach(id=>{let el=document.getElementById(id);if(el)el.value=r[id]??''});['dayAlert','morningAlert','refreshed','energy','sleepiness'].forEach(id=>setRating(id,r[id]||1));showTab('diary')}
+function deleteEntry(date){if(confirm('Delete the record for '+date+'?')){records=records.filter(r=>r.date!==date);persist();renderHistory()}}
+function download(name,content,type){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function exportJSON(){download('sleep-diary-backup.json',JSON.stringify(records,null,2),'application/json')}
+function exportCSV(){let all=[ids.join(','),...records.map(r=>ids.map(k=>'"'+String(r[k]??'').replace(/"/g,'""')+'"').join(','))].join('\r\n');download('sleep-diary.csv',all,'text/csv')}
+function importJSON(e){let f=e.target.files[0];if(!f)return;let reader=new FileReader();reader.onload=()=>{try{let incoming=JSON.parse(reader.result);if(!Array.isArray(incoming))throw Error();let map=new Map(records.map(r=>[r.date,r]));incoming.forEach(r=>map.set(r.date,r));records=[...map.values()].sort((a,b)=>a.date.localeCompare(b.date));persist();renderHistory();alert('Backup imported.')}catch(err){alert('Could not read that backup file.')}};reader.readAsText(f);e.target.value=''}
+if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+</body></html>
